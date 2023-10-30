@@ -1,10 +1,10 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
 
 const useStore = create((set) => ({
-    currentUser: '',
-    gameBoard: new Array(24).fill(0),
-    setCurrentUser: (currentUser) => set({ currentUser: currentUser }),
-    setGameBoard: (gameBoard) => set({ gameBoard: gameBoard })
+  currentUser: '',
+  gameBoard: new Array(24).fill(0),
+  setCurrentUser: (currentUser) => set({ currentUser: currentUser }),
+  setGameBoard: (gameBoard) => set({ gameBoard: gameBoard }),
 }))
 
-export default useStore;
+export default useStore
