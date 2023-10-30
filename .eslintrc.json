@@ -1,0 +1,21 @@
+{
+  "extends": ["airbnb", "prettier", "plugin:node/recommended"],
+  "plugins": ["prettier"],
+  "env": {
+    "mocha" : true
+  },
+  "rules": {
+    "prettier/prettier": "error",
+    "no-unused-vars": "warn",
+    "no-console": "error",
+    "import/no-extraneous-dependencies": ["off", { "devDependencies": true }],
+    "object-shorthand": "off",
+    "node/no-unsupported-features/es-syntax": [
+      "warn",
+      {
+        "version": ">=8.0.0",
+        "ignores": []
+      }
+    ]
+  }
+}
