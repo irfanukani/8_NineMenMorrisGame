@@ -2,16 +2,56 @@
 const http = require('http')
 const { Server } = require('socket.io')
 const { v4: uuidv4 } = require('uuid')
-const { isValidMove, registerMove, specialCase } = require('./game/index')
+const {
+  isValidMove,
+  registerMove,
+  specialCase,
+  getWinnerIfGameOver,
+} = require('./game/index')
 
 const httpServer = http.createServer()
 const currentGames = new Map()
+const playerTimers = new Map()
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:5173', 'http://morris-game.surge.sh'],
+    origin: ['http://localhost:5173', 'https://morris-game.surge.sh'],
   },
 })
+
+function startGameTimer(roomName, player) {
+  let gameTimeInSeconds = playerTimers.get(roomName)[player].remainingTime
+
+  const intervalId = setInterval(() => {
+    gameTimeInSeconds -= 1
+    io.to(roomName).emit(`game-time-update`, {
+      player: player,
+      timer: gameTimeInSeconds,
+    })
+
+    playerTimers.set(roomName, {
+      ...playerTimers.get(roomName),
+      [player]: {
+        ...playerTimers.get(roomName)[player],
+        remainingTime: gameTimeInSeconds,
+      },
+    })
+
+    // Check for game over condition here if needed
+    if (gameTimeInSeconds === 0) {
+      clearInterval(playerTimers.get(roomName)[player].intervalId)
+      io.to(roomName).emit('game-over', {
+        winner: player === 'guest' ? 'host' : 'guest',
+      })
+    }
+  }, 1000)
+
+  // Save the intervalId for later use (clearing the interval)
+  playerTimers.set(roomName, {
+    ...playerTimers.get(roomName),
+    [player]: { intervalId: intervalId, remainingTime: gameTimeInSeconds },
+  })
+}
 
 /**
  * Handles the creation of a new game room.
@@ -22,7 +62,7 @@ const io = new Server(httpServer, {
  *   @param {number} roomInfo.gameTimer - The timeamount for the game in seconds.
  */
 async function createRoom(socket, roomInfo) {
-  const roomId = uuidv4()
+  const roomId = uuidv4().substring(0, 5).toUpperCase()
   const gameData = {
     host: roomInfo.user,
     betAmount: roomInfo.betAmount,
@@ -32,6 +72,10 @@ async function createRoom(socket, roomInfo) {
     roomId: roomId,
   }
   currentGames.set(roomId, gameData)
+  playerTimers.set(roomId, {
+    host: { intervalId: null, remainingTime: gameData.gameTimer },
+    guest: { intervalId: null, remainingTime: gameData.gameTimer },
+  })
 
   socket.emit('room-created', roomId)
   socket.join(roomId)
@@ -60,7 +104,6 @@ async function joinRoom(socket, roomInfo) {
   if (gameData) {
     gameData.guest = roomInfo.user
     socket.join(roomInfo.roomName)
-    // startGameTimer(roomInfo.roomName, gameData.gameTimer);
     io.to(roomInfo.roomName).emit('room-joined', gameData)
   } else {
     socket.emit('room-join-failure', 'Room does not exist.')
@@ -71,15 +114,22 @@ async function joinRoom(socket, roomInfo) {
 async function gameMove(socket, gameInfo) {
   const game = currentGames.get(gameInfo.roomName)
   if (game) {
-    if (!isValidMove(game.boardState, gameInfo.moveInfo)) {
+    if (!isValidMove(game, gameInfo.moveInfo)) {
       socket.emit(
         'illegal-move',
         'The move sent by client does not obey game rules!',
       )
       return
     }
+
     game.boardState = registerMove(game, gameInfo.moveInfo)
     // Game over check logic
+    const winner = getWinnerIfGameOver(game)
+    if (winner) {
+      io.to(gameInfo.roomName).emit('game-over', {
+        winner: winner,
+      })
+    }
     if (specialCase(game, gameInfo.moveInfo).length) {
       io.to(gameInfo.roomName).emit('move-registered', {
         ...game,
@@ -89,21 +139,17 @@ async function gameMove(socket, gameInfo) {
       return
     }
     // change turns
+    const currentPlayer = game.turn
+    const otherPlayer = currentPlayer === 'host' ? 'guest' : 'host'
+    clearInterval(playerTimers.get(gameInfo.roomName)[currentPlayer].intervalId)
+
+    startGameTimer(gameInfo.roomName, otherPlayer)
     game.turn = game.turn === 'host' ? 'guest' : 'host'
     io.to(gameInfo.roomName).emit('move-registered', game)
   } else {
     socket.emit('game-error', 'No Such Game room exists')
   }
 }
-
-// function startGameTimer(roomName, timeInSeconds) {
-//   let gameTimeInSeconds = timeInSeconds
-
-//   gameTimer = setInterval(() => {
-//     gameTimeInSeconds--
-//     io.to(roomName).emit('game-time-update', gameTimeInSeconds)
-//   }, 1000)
-// }
 
 io.on('connection', (socket) => {
   socket.on('create-room', (roomInfo) => {
@@ -116,6 +162,20 @@ io.on('connection', (socket) => {
 
   socket.on('game-move', (gameInfo) => {
     gameMove(socket, gameInfo)
+  })
+  socket.on('update-room', (gameInfo) => {
+    const game = currentGames.get(gameInfo.roomName)
+    if (game) {
+      game.gameTimer = gameInfo.gameTimer || 15 * 60
+      game.betAmount = gameInfo.betAmount || 0
+    }
+  })
+  socket.on('get-room-info', (gameInfo) => {
+    const game = currentGames.get(gameInfo.roomName)
+    socket.emit('room-info', game)
+  })
+  socket.on('player-disconnect', (roomInfo) => {
+    io.to(roomInfo.roomName).emit('player-disconnect', 'player-disconnect')
   })
 })
 

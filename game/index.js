@@ -8,7 +8,7 @@ const adjacents = [
   [7, 11],
   [4, 6, 8],
   [7, 12],
-  [0, 21],
+  [0, 10, 21],
   [3, 9, 11, 18],
   [6, 10, 15],
   [8, 13, 17],
@@ -25,23 +25,35 @@ const adjacents = [
   [14, 22],
 ]
 
+const onlyThreePiecesInBoard = (board, turn) =>
+  board.filter((i) => i === turn).length === 3
+
 /** Function to determine if it's the Valid Move or not
  * @param {Array} gameBoard - current State of game board
  * @param {Object} moveInfo
  *  @param {string} moveInfo.moveType - either [setup , slide, capture]
  *  @param {Array} moveInfo.indices - [Array of indices]
  */
-const isValidMove = (gameBoard, moveInfo) => {
+const isValidMove = (game, moveInfo) => {
+  // eslint-disable-next-line no-console
+  const { boardState, turn } = game
+  const gameBoard = boardState
   try {
     switch (moveInfo.moveType) {
       case 'setup':
         return gameBoard.at(moveInfo.indices.at(0)) === 0
       case 'slide':
-        if (adjacents[moveInfo.indices.at(0)].includes(moveInfo.indices.at(1)))
+        if (
+          adjacents[moveInfo.indices.at(0)].includes(moveInfo.indices.at(1)) ||
+          onlyThreePiecesInBoard(boardState, turn)
+        )
           return gameBoard.at(moveInfo.indices.at(1)) === 0
         return false
       case 'capture':
-        return gameBoard.at(moveInfo.indices.at(0)) !== 0
+        return (
+          gameBoard.at(moveInfo.indices.at(0)) !== turn &&
+          gameBoard.at(moveInfo.indices.at(0)) !== 0
+        )
       default:
         return false
     }
@@ -87,10 +99,29 @@ const registerMove = (gameInfo, moveInfo) => {
  * @param {Object} gameInfo - current State of game
  *  @param {Array} gameInfo.gameBoard - current board status
  */
-const isSpecial = (gameBoard, index1, index2, index3) =>
-  gameBoard[index1] !== 0 &&
-  gameBoard[index1] === gameBoard[index2] &&
-  gameBoard[index2] === gameBoard[index3]
+const isSpecial = (gameBoard, index1, index2, index3, moveInfo) => {
+  if (moveInfo.moveType === 'setup') {
+    return (
+      gameBoard[index1] !== 0 &&
+      gameBoard[index1] === gameBoard[index2] &&
+      gameBoard[index2] === gameBoard[index3] &&
+      (index1 === moveInfo.indices[0] ||
+        index2 === moveInfo.indices[0] ||
+        index3 === moveInfo.indices[0])
+    )
+  }
+  if (moveInfo.moveType === 'slide') {
+    return (
+      gameBoard[index1] !== 0 &&
+      gameBoard[index1] === gameBoard[index2] &&
+      gameBoard[index2] === gameBoard[index3] &&
+      (index1 === moveInfo.indices[1] ||
+        index2 === moveInfo.indices[1] ||
+        index3 === moveInfo.indices[1])
+    )
+  }
+  return false
+}
 
 /**
  *
@@ -121,7 +152,10 @@ const specialCase = (gameInfo, moveInfo) => {
     [5, 13, 20],
     [2, 14, 23],
   ]
-  const resultTrio = trios.find((trio) => isSpecial(boardState, ...trio)) || []
+  const resultTrio =
+    trios.find((trio) => isSpecial(boardState, ...trio, moveInfo)) || []
+  // eslint-disable-next-line no-console
+  // console.log(resultTrio)
   if (moveInfo.moveType === 'setup') {
     if (resultTrio.includes(moveInfo.indices[0])) return resultTrio
   } else if (moveInfo.moveType === 'slide') {
@@ -130,4 +164,19 @@ const specialCase = (gameInfo, moveInfo) => {
   return []
 }
 
-module.exports = { isValidMove, registerMove, specialCase }
+// check if no valid move exists!!
+const getWinnerIfGameOver = (gameInfo) => {
+  const { boardState } = gameInfo
+  const checkersHost = boardState.filter((i) => i === 'host')
+  const checkersGuest = boardState.filter((i) => i === 'guest')
+
+  if (checkersGuest.length <= 2) {
+    return 'host'
+  }
+  if (checkersHost.length <= 2) {
+    return 'guest'
+  }
+  return null
+}
+
+module.exports = { isValidMove, registerMove, specialCase, getWinnerIfGameOver }

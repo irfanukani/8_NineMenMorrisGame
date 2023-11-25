@@ -49,7 +49,7 @@ export default function App() {
   }
 
   return (
-    <div className="bg-gray-800 h-screen w-full grid place-items-center text-white">
+    <div className="bg-gray-800 h-screen w-full grid place-items-center text-white pattern">
       <Modal isOpen={isModalOpen} closeModal={closeModal}>
         <div className="p-4 flex flex-col">
           <h2 className="text-lg font-semibold mb-2">Join Room</h2>
@@ -75,23 +75,25 @@ export default function App() {
         </div>
       </Modal>
       <AudioPlayer src="/audio/bg-music.mp3" />
-      <div className="flex flex-col gap-4 w-96">
+      <div className="flex flex-col gap-4 w-60 xl:w-96">
         <button
-          className="px-8 py-4 text-4xl bg-blue-700 rounded"
+          className="gamified px-8 py-4 text-4xl bg-blue-700 rounded"
           onClick={createRoom}
         >
           Create Room
         </button>
         <button
-          className="px-8 py-4 text-4xl border border-blue-700 rounded"
+          className="gamified bg-gray-700 px-8 py-4 text-4xl border border-blue-700 rounded"
           onClick={openModal}
         >
           Join Room
         </button>
-        <button className="px-8 py-4 text-4xl border border-blue-700 rounded">
+        <button className="gamified bg-gray-700 px-8 py-4 text-4xl border border-blue-700 rounded">
+
           Game Rules
         </button>
       </div>
+      <div className='fixed bottom-2 text-gray-900 text-xl'>Made with ❤️ by Team Trie!</div>
     </div>
   )
 }
