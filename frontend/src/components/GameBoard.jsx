@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import useStore from '../state/gameState'
 import socket from '../socket'
+import Timer from './Timer'
+import { useNavigate } from 'react-router-dom'
+
 const circles = [
   {
     cx: 50,
@@ -108,6 +111,12 @@ function GameBoard() {
   const [specialIndices, setSpecialIndices] = useState([])
   const [audio] = useState(new Audio('/audio/tap-sound.mp3'))
   const [successAudio] = useState(new Audio('/audio/success-trio.mp3'))
+  const [winAudio] = useState(new Audio('/audio/win-music.mp3'))
+  const [loseAudio] = useState(new Audio('/audio/lose-music.mp3'))
+  const [indices, setIndices] = useState([])
+  const [hostTime, setHostTime] = useState(0)
+  const [guestTime, setGuestTime] = useState(0)
+  const [betAmount, setBetAmount] = useState()
 
   useEffect(() => {
     socket.on('move-registered', (gameInfo) => {
@@ -122,12 +131,56 @@ function GameBoard() {
         setSpecialIndices([])
       }
     })
-  }, [audio, successAudio, currentUser, setGameBoard])
+
+    socket.on('game-over', (gameInfo) => {
+      // gameInfo.winner won!
+      if (checkers == 0 && gameInfo.winner === currentUser) {
+        winAudio.play()
+      } else if (checkers == 0 && gameInfo.winner !== currentUser) {
+        loseAudio.play()
+      }
+    })
+    socket.on(`game-time-update`, (timerInfo) => {
+      if (currentUser === timerInfo.player) {
+        setHostTime(timerInfo.timer)
+      } else {
+        setGuestTime(timerInfo.timer)
+      }
+    })
+    socket.on('room-info', (roomInfo) => {
+      setBetAmount(roomInfo.betAmount)
+      setHostTime(roomInfo.gameTimer)
+      setGuestTime(roomInfo.gameTimer)
+      setGameBoard(roomInfo.boardState)
+    })
+  }, [
+    audio,
+    successAudio,
+    currentUser,
+    setGameBoard,
+    checkers,
+    winAudio,
+    loseAudio,
+  ])
 
   const handleClick = (index) => {
     if (!turn) return
 
+    // special case happened [a trio matched, capture!]
+    if (specialIndices.length) {
+      socket.emit('game-move', {
+        roomName: window.location.href.split('/')[4],
+        moveInfo: {
+          moveType: 'capture',
+          indices: [index],
+        },
+      })
+      return
+    }
+
+    // set up phase is going on
     if (checkers > 0) {
+      // It's a normal setup move!
       socket.emit('game-move', {
         roomName: window.location.href.split('/')[4],
         moveInfo: {
@@ -135,28 +188,60 @@ function GameBoard() {
           indices: [index],
         },
       })
+
       setCheckers(checkers - 1)
       return
     }
 
-    // if (specialIndices.length > 0) {
-    //     socket.emit('game-move', {
-    //         roomName: window.location.href.split('/')[4],
-    //         moveInfo: {
-    //             moveType: 'capture',
-    //             indices: [index]
-    //         }
-    //     });
-    // }
+    // slide move - first click!
+    // check if it is on a checker which is owned by current user!!
+    if (gameBoard[index] === currentUser) {
+      setIndices([index])
+    } else {
+      socket.emit('game-move', {
+        roomName: window.location.href.split('/')[4],
+        moveInfo: {
+          moveType: 'slide',
+          indices: [...indices, index],
+        },
+      })
+      setIndices([])
+    }
   }
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    socket.emit('get-room-info', {
+      roomName: window.location.href.split('/')[4],
+    })
+
+    socket.on('player-disconnect', () => {
+      winAudio.play()
+      navigate('/')
+    })
+
+    // return () => {
+    //   socket.emit('player-disconnect', {
+    //     roomName: window.location.href.split('/')[4],
+    //   })
+    // }
+  }, [navigate, winAudio])
 
   return (
     <div className="grid h-screen w-full place-content-center bg-gray-800">
+      <div className="fixed w-full h-28 text-white place-content-center grid text-2xl lg:text-4xl">
+        Bet Amount : {betAmount}
+        <div className="flex gap-4 items-center">
+          {'Opponent'}
+          <Timer seconds={guestTime} user={currentUser} />
+        </div>
+      </div>
       <svg
         width="350"
-        height="500"
+        height="480"
         xmlns="http://www.w3.org/2000/svg"
-        className="scale-[1.2] rounded bg-white shadow-md"
+        className="md:scale-[1.35] xl:scale-[1.5] rounded bg-white shadow-md gamified"
       >
         {circles.map((circle, index) => (
           <circle
@@ -174,8 +259,20 @@ function GameBoard() {
                 ? 'blue'
                 : 'none'
             }
-            stroke={specialIndices.includes(index) ? 'red' : 'blue'}
-            strokeWidth="1.5"
+            stroke={
+              specialIndices.includes(index)
+                ? 'red'
+                : indices.includes(index)
+                ? 'green'
+                : 'blue'
+            }
+            strokeWidth={
+              specialIndices.includes(index)
+                ? '2'
+                : indices.includes(index)
+                ? '2'
+                : '1.5'
+            }
           />
         ))}
 
@@ -436,8 +533,15 @@ function GameBoard() {
           strokeWidth="1.2"
         />
       </svg>
-      <div className=" text-white relative top-36 z-20 text-center">
-        {turn ? '' : 'waiting for opponent!'}
+      <div className="fixed bottom-0 w-full bg-yellow-400  h-20 text-white place-content-center grid text-2xl lg:text-4xl">
+        <div className="flex gap-4 items-center">
+          {currentUser}
+          <Timer
+            seconds={hostTime}
+            user={currentUser === 'host' ? 'guest' : 'host'}
+          />
+        </div>
+
       </div>
     </div>
   )
