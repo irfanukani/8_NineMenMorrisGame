@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Luckiest+Guy&display=swap');
-
+ 
 * {
   font-family: 'Lato', sans-serif;
   font-family: 'Luckiest Guy', cursive;
 }
-
+ 
 .comic-button {
   display: inline-block;
   padding: 10px 20px;
@@ -18,7 +18,7 @@
   box-shadow: 5px 5px 0px #000;
   transition: all 0.3s ease;
 }
-
+ 
 .gamified {
   display: inline-block;
   font-size: 24px;
@@ -31,20 +31,20 @@
   box-shadow: 5px 5px 0px #000;
   transition: all 0.3s ease;
 }
-
+ 
 .comic-button:hover {
   background-color: #fff;
   color: #ff5252;
   border: 2px solid #ff5252;
   box-shadow: 5px 5px 0px #ff5252;
 }
-
+ 
 .comic-button:active {
   background-color: #fcf414;
   box-shadow: none;
   transform: translateY(4px);
 }
-
+ 
 .container {
   width: 100%;
   height: 100%;
@@ -53,7 +53,7 @@
   filter: contrast(7);
   --mask: linear-gradient(red, rgba(0, 0, 0, 0.45));
 }
-
+ 
 .container::before {
   position: absolute;
   top: 0;
@@ -65,7 +65,7 @@
   mask: var(--mask);
   content: '';
 }
-
+ 
 .pattern {
   background-color: #e5e5f7;
   background-image: linear-gradient(rgba(68, 77, 247, 0.172) 1px, transparent 1px),
