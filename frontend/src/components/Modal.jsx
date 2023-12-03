@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
- 
+import PropTypes from 'prop-types'
+
 function Modal({ isOpen, children }) {
   return isOpen ? (
     <div className="fixed gamified z-10 inset-0 overflow-y-auto">
@@ -20,10 +20,10 @@ function Modal({ isOpen, children }) {
     </div>
   ) : null
 }
- 
+
 Modal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   children: PropTypes.node.isRequired,
-};
- 
+}
+
 export default Modal

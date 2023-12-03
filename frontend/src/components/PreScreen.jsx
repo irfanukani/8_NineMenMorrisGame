@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import AudioPlayer from './AudioPlayer'
 import socket from '../socket'
- 
+
 export default function PreScreen() {
   const roomId = window.location.href.split('/')[4]
   const [selectedBetAmount, setSelectedBetAmount] = useState(0)
- 
+
   const emitRoomUpdate = (amount) => {
     socket.emit('update-room', {
       roomName: roomId,
@@ -13,11 +13,11 @@ export default function PreScreen() {
       betAmount: amount,
     })
   }
- 
+
   const copyRoomId = () => {
     navigator.clipboard.writeText(roomId)
   }
- 
+
   return (
     <section className="bg-gray-800 h-screen w-full text-white grid place-items-center pattern">
       <AudioPlayer src={'/audio/bg-music.mp3'} />
@@ -25,7 +25,7 @@ export default function PreScreen() {
         <div className="text-2xl xl:text-4xl text-center py-8 text-gray-900">
           Waiting for players to join!
         </div>
- 
+
         <div className="flex gap-4 px-1 justify-between my-[17.5px]">
           <div
             onClick={() => {
@@ -64,7 +64,7 @@ export default function PreScreen() {
             <p className="text-gray-900">50</p>
           </div>
         </div>
- 
+
         <div className="bg-gray-900 mt-8 rounded text-white px-12 py-4 text-2xl xl:text-4xl flex gap-8 items-center w-60">
           <p className="text-center">{roomId}</p>
           <i
@@ -72,7 +72,7 @@ export default function PreScreen() {
             onClick={copyRoomId}
           ></i>
         </div>
- 
+
         <p className="mt-8 text-gray-900">
           <i className="fa-solid fa-circle-info"></i> &nbsp; You can share this
           room Id with your friend
