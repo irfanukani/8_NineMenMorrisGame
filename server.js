@@ -184,8 +184,8 @@ io.on('connection', (socket) => {
   socket.on('update-room', (gameInfo) => {
     const game = currentGames.get(gameInfo.roomName)
     if (game) {
-      game.gameTimer = gameInfo.gameTimer || 15 * 60
-      game.betAmount = gameInfo.betAmount || 0
+      game.gameTimer = gameInfo.gameTimer
+      game.betAmount = gameInfo.betAmount
     }
   })
   socket.on('get-room-info', (gameInfo) => {
