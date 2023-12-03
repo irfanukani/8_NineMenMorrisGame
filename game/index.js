@@ -50,9 +50,12 @@ const isValidMove = (game, moveInfo) => {
           return gameBoard.at(moveInfo.indices.at(1)) === 0
         return false
       case 'capture':
+        // let newMoveInfo = moveInfo;
+        // newMoveInfo.moveType = 'capture';
         return (
           gameBoard.at(moveInfo.indices.at(0)) !== turn &&
-          gameBoard.at(moveInfo.indices.at(0)) !== 0
+          gameBoard.at(moveInfo.indices.at(0)) !== 0 &&
+          isValidCapture(game, moveInfo)
         )
       default:
         return false
@@ -60,6 +63,40 @@ const isValidMove = (game, moveInfo) => {
   } catch (error) {
     return false
   }
+}
+
+function isValidCapture(game, moveInfo){
+  const { boardState, turn } = game
+  const trios = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [9, 10, 11],
+    [12, 13, 14],
+    [15, 16, 17],
+    [18, 19, 20],
+    [21, 22, 23],
+    [0, 9, 21],
+    [3, 10, 18],
+    [6, 11, 15],
+    [1, 4, 7],
+    [16, 19, 22],
+    [8, 12, 17],
+    [5, 13, 20],
+    [2, 14, 23],
+  ]
+
+  if(specialCase(game, moveInfo).length === 0) return true
+  const other = (turn=='host'?'guest':'host')
+  
+  for(let i=0; i<trios.length; i++){
+    let count=0;
+    for(let j=0; j<3; j++){
+      if(boardState[trios[i][j]] == other) count++;
+    }
+    if(count>0 && count<3) return false;  
+  }
+  return true;
 }
 
 /** Function to register a move
@@ -100,7 +137,7 @@ const registerMove = (gameInfo, moveInfo) => {
  *  @param {Array} gameInfo.gameBoard - current board status
  */
 const isSpecial = (gameBoard, index1, index2, index3, moveInfo) => {
-  if (moveInfo.moveType === 'setup') {
+  if (moveInfo.moveType === 'setup' || moveInfo.moveType === 'capture') {
     return (
       gameBoard[index1] !== 0 &&
       gameBoard[index1] === gameBoard[index2] &&
@@ -156,7 +193,8 @@ const specialCase = (gameInfo, moveInfo) => {
     trios.find((trio) => isSpecial(boardState, ...trio, moveInfo)) || []
   // eslint-disable-next-line no-console
   // console.log(resultTrio)
-  if (moveInfo.moveType === 'setup') {
+  // if(resultTrio.length) resultTrio;
+  if (moveInfo.moveType === 'setup' || moveInfo.moveType === 'capture') {
     if (resultTrio.includes(moveInfo.indices[0])) return resultTrio
   } else if (moveInfo.moveType === 'slide') {
     if (resultTrio.includes(moveInfo.indices[1])) return resultTrio
