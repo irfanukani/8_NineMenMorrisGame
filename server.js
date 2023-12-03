@@ -186,6 +186,11 @@ io.on('connection', (socket) => {
     if (game) {
       game.gameTimer = gameInfo.gameTimer
       game.betAmount = gameInfo.betAmount
+
+      playerTimers.set(gameInfo.roomName, {
+        host: { intervalId: null, remainingTime: gameInfo.gameTimer },
+        guest: { intervalId: null, remainingTime: gameInfo.gameTimer },
+      })
     }
   })
   socket.on('get-room-info', (gameInfo) => {
