@@ -4,6 +4,7 @@ import useStore from '../state/gameState'
 import socket from '../socket'
 import Timer from './Timer'
 import { useNavigate } from 'react-router-dom'
+import Modal from './Modal'
 
 const circles = [
   {
@@ -117,6 +118,9 @@ function GameBoard() {
   const [hostTime, setHostTime] = useState(0)
   const [guestTime, setGuestTime] = useState(0)
   const [betAmount, setBetAmount] = useState()
+  const [winner, setWinner] = useState(null)
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     socket.on('move-registered', (gameInfo) => {
@@ -134,10 +138,13 @@ function GameBoard() {
 
     socket.on('game-over', (gameInfo) => {
       // gameInfo.winner won!
+      // setWinner(gameInfo.winner)
       if (checkers == 0 && gameInfo.winner === currentUser) {
         winAudio.play()
+        setWinner(gameInfo.winner)
       } else if (checkers == 0 && gameInfo.winner !== currentUser) {
         loseAudio.play()
+        setWinner(gameInfo.winner)
       }
     })
     socket.on(`game-time-update`, (timerInfo) => {
@@ -209,24 +216,18 @@ function GameBoard() {
     }
   }
 
-  const navigate = useNavigate()
-
   useEffect(() => {
     socket.emit('get-room-info', {
       roomName: window.location.href.split('/')[4],
     })
+  }, [])
 
-    socket.on('player-disconnect', () => {
-      winAudio.play()
-      navigate('/')
-    })
-
-    // return () => {
-    //   socket.emit('player-disconnect', {
-    //     roomName: window.location.href.split('/')[4],
-    //   })
-    // }
-  }, [navigate, winAudio])
+  const WinnerModalBody = () => {
+    return <div className='p-5 flex flex-col'>
+      {winner === currentUser ? 'Congrats!, You won.' : 'Oops! You lost.' }
+      <button className='comic-button text-sm mt-4' onClick={() => navigate('/')}>Go to Main Menu</button>
+    </div>
+  }
 
   return (
     <div className="grid h-screen w-full place-content-center bg-gray-800">
@@ -541,8 +542,10 @@ function GameBoard() {
             user={currentUser === 'host' ? 'guest' : 'host'}
           />
         </div>
-
       </div>
+      <Modal isOpen={winner !== null}>
+        <WinnerModalBody />
+      </Modal>
     </div>
   )
 }
