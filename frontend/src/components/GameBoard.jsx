@@ -223,10 +223,17 @@ function GameBoard() {
   }, [])
 
   const WinnerModalBody = () => {
-    return <div className='p-5 flex flex-col'>
-      {winner === currentUser ? 'Congrats!, You won.' : 'Oops! You lost.' }
-      <button className='comic-button text-sm mt-4' onClick={() => navigate('/')}>Go to Main Menu</button>
-    </div>
+    return (
+      <div className="p-5 flex flex-col">
+        {winner === currentUser ? 'Congrats!, You won.' : 'Oops! You lost.'}
+        <button
+          className="comic-button text-sm mt-4"
+          onClick={() => navigate('/')}
+        >
+          Go to Main Menu
+        </button>
+      </div>
+    )
   }
 
   return (
