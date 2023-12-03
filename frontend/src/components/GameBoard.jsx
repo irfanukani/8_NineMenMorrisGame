@@ -541,7 +541,6 @@ function GameBoard() {
             user={currentUser === 'host' ? 'guest' : 'host'}
           />
         </div>
-
       </div>
     </div>
   )
