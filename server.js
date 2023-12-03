@@ -1,6 +1,7 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
+const express = require('express')
 const http = require('http')
-const { Server } = require('socket.io')
+const socketIO = require('socket.io')
 const { v4: uuidv4 } = require('uuid')
 const {
   isValidMove,
@@ -13,11 +14,16 @@ const httpServer = http.createServer()
 const currentGames = new Map()
 const playerTimers = new Map()
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: ['http://localhost:5173', 'https://morris-game.surge.sh'],
-  },
-})
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+
+// const io = new Server(httpServer, {
+//   cors: {
+//     origin: ['http://localhost:5173', 'https://morris-game.surge.sh'],
+//   },
+// })
 
 function startGameTimer(roomName, player) {
   let gameTimeInSeconds = playerTimers.get(roomName)[player].remainingTime
@@ -179,4 +185,4 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(3001)
+httpServer.listen(process.env.PORT || 3001)
