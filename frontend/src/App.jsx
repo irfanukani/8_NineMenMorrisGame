@@ -89,6 +89,7 @@ export default function App() {
           Join Room
         </button>
         <button className="gamified bg-gray-700 px-8 py-4 text-4xl border border-blue-700 rounded">
+
           Game Rules
         </button>
       </div>

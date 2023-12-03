@@ -4,6 +4,7 @@ import useStore from '../state/gameState'
 import socket from '../socket'
 import Timer from './Timer'
 import { useNavigate } from 'react-router-dom'
+
 const circles = [
   {
     cx: 50,
@@ -130,6 +131,7 @@ function GameBoard() {
         setSpecialIndices([])
       }
     })
+
     socket.on('game-over', (gameInfo) => {
       // gameInfo.winner won!
       if (checkers == 0 && gameInfo.winner === currentUser) {
@@ -539,6 +541,7 @@ function GameBoard() {
             user={currentUser === 'host' ? 'guest' : 'host'}
           />
         </div>
+
       </div>
     </div>
   )
