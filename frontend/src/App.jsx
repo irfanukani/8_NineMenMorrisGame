@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AudioPlayer from './components/AudioPlayer'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Modal from './components/Modal'
 import socket from './socket'
 import useStore from './state/gameState'
@@ -88,10 +88,9 @@ export default function App() {
         >
           Join Room
         </button>
-        <button className="gamified bg-gray-700 px-8 py-4 text-4xl border border-blue-700 rounded">
-
+        <Link to={'/rules'} className="gamified bg-gray-700 px-8 py-4 text-4xl border border-blue-700 rounded">
           Game Rules
-        </button>
+        </Link>
       </div>
       <div className='fixed bottom-2 text-gray-900 text-xl'>Made with ❤️ by Team Trie!</div>
     </div>

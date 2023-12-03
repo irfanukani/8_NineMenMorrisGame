@@ -1,6 +1,8 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
+const cors = require('cors')
+const express = require('express')
 const http = require('http')
-const { Server } = require('socket.io')
+const socketIO = require('socket.io')
 const { v4: uuidv4 } = require('uuid')
 const {
   isValidMove,
@@ -9,15 +11,31 @@ const {
   getWinnerIfGameOver,
 } = require('./game/index')
 
-const httpServer = http.createServer()
 const currentGames = new Map()
 const playerTimers = new Map()
 
-const io = new Server(httpServer, {
+const app = express()
+const server = http.createServer(app)
+const io = socketIO(server, {
   cors: {
     origin: ['http://localhost:5173', 'https://morris-game.surge.sh'],
+    methods: ['GET', 'POST'],
   },
 })
+
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
+
+// const io = new Server(httpServer, {
+//   cors: {
+//     origin: ['http://localhost:5173', 'https://morris-game.surge.sh'],
+//   },
+// })
 
 function startGameTimer(roomName, player) {
   let gameTimeInSeconds = playerTimers.get(roomName)[player].remainingTime
@@ -179,4 +197,4 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(3001)
+server.listen(process.env.PORT || 3001)
