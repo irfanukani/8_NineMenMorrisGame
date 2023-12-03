@@ -14,10 +14,9 @@ const httpServer = http.createServer()
 const currentGames = new Map()
 const playerTimers = new Map()
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
-
+const app = express()
+const server = http.createServer(app)
+const io = socketIO(server)
 
 // const io = new Server(httpServer, {
 //   cors: {
@@ -185,4 +184,4 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(process.env.PORT || 3001)
+server.listen(process.env.PORT || 3001)
