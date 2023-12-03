@@ -5,6 +5,7 @@ import App from './App'
 import './index.css'
 import Room from './pages/Room'
 import Game from './pages/Game'
+import GameRules from './components/GameRules'
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
     path: '/game/*',
     element: <Game />,
   },
+  {
+    path : 'rules',
+    element : <GameRules />
+  }
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
