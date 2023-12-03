@@ -1,4 +1,5 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
+const cors = require('cors')
 const express = require('express')
 const http = require('http')
 const socketIO = require('socket.io')
@@ -10,13 +11,25 @@ const {
   getWinnerIfGameOver,
 } = require('./game/index')
 
-const httpServer = http.createServer()
 const currentGames = new Map()
 const playerTimers = new Map()
 
 const app = express()
 const server = http.createServer(app)
-const io = socketIO(server)
+const io = socketIO(server, {
+  cors: {
+    origin: ['http://localhost:5173', 'https://morris-game.surge.sh'],
+    methods: ['GET', 'POST'],
+  },
+})
+
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+}
+
+app.use(cors(corsOptions))
 
 // const io = new Server(httpServer, {
 //   cors: {
