@@ -2,6 +2,6 @@
 
 import { io } from 'socket.io-client'
 
-const socket = io('https://8817-14-139-82-6.ngrok-free.app')
+const socket = io('http://localhost:3001')
 
 export default socket
