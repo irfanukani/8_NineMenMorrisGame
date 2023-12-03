@@ -92,7 +92,9 @@ export default function App() {
           Game Rules
         </button>
       </div>
-      <div className='fixed bottom-2 text-gray-900 text-xl'>Made with ❤️ by Team Trie!</div>
+      <div className="fixed bottom-2 text-gray-900 text-xl">
+        Made with ❤️ by Team Trie!
+      </div>
     </div>
   )
 }

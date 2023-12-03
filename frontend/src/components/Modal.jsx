@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 
 function Modal({ isOpen, children }) {
   return isOpen ? (
@@ -24,6 +24,6 @@ function Modal({ isOpen, children }) {
 Modal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   children: PropTypes.node.isRequired,
-};
+}
 
 export default Modal
